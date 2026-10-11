@@ -1,0 +1,19 @@
+idf_component_register(
+    SRCS
+        "main.c"
+        "board/board.c"
+        "audio/audio.c"
+        "link/link.c"
+        "ui/mono.c"
+        "ui/mono_list.c"
+        "ui/mono_tiles.c"
+        "ui/mono_status.c"
+        "apps/app_manager.c"
+        "apps/app_registry.c"
+        "apps/app_chat.c"
+        "apps/app_notes.c"
+        "apps/app_settings.c"
+        "assets/icons.c"
+        "fonts/mono_font_32.c"
+    INCLUDE_DIRS "."
+)
