@@ -1,0 +1,41 @@
+menu "LLM Assistant"
+
+    config ASSISTANT_WIFI_SSID
+        string "Wi-Fi SSID"
+        default "my-wifi"
+        help
+            Network the device joins on boot.
+
+    config ASSISTANT_WIFI_PASSWORD
+        string "Wi-Fi password"
+        default "my-password"
+
+    config ASSISTANT_SERVER_URI
+        string "Companion server WebSocket URI"
+        default "ws://192.168.1.10:8765"
+        help
+            Address of the companion server, for example ws://laptop.local:8765
+            or wss://assistant.example.com/ws when behind TLS.
+
+    config ASSISTANT_DEVICE_NAME
+        string "Device name"
+        default "pocket-assistant"
+        help
+            Sent to the server in the hello message; shown in server logs.
+
+    config ASSISTANT_SPEAKER_VOLUME
+        int "Speaker volume (0-100)"
+        range 0 100
+        default 70
+
+    config ASSISTANT_MIC_GAIN_DB
+        int "Microphone gain in dB"
+        range 0 42
+        default 30
+
+    config ASSISTANT_BRIGHTNESS
+        int "Display brightness (0-100)"
+        range 0 100
+        default 80
+
+endmenu

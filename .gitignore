@@ -1,0 +1,25 @@
+# ESP-IDF build output and downloaded components
+firmware/build/
+firmware/managed_components/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/sdkconfig.defaults.*.bak
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Server runtime state
+server/.env
+server/notes/
+notes/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
