@@ -46,7 +46,9 @@ class Settings:
     openai_tts_model: str = field(default_factory=lambda: _env("OPENAI_TTS_MODEL", "tts-1"))
     openai_tts_voice: str = field(default_factory=lambda: _env("OPENAI_TTS_VOICE", "alloy"))
     whisper_model: str = field(default_factory=lambda: _env("WHISPER_MODEL", "base"))
+    whisper_device: str = field(default_factory=lambda: _env("WHISPER_DEVICE", "cpu"))
     piper_model: str = field(default_factory=lambda: _env("PIPER_MODEL", ""))
+    piper_bin: str = field(default_factory=lambda: _env("PIPER_BIN", "piper"))
 
     notes_dir: str = field(default_factory=lambda: _env("NOTES_DIR", "./notes"))
 

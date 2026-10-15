@@ -235,13 +235,42 @@ static void reconnect_cb(void *arg)
     esp_wifi_connect();
 }
 
+/* One scan at boot, logged so a device that cannot join tells you what it
+ * sees (the radio is 2.4 GHz only). The first connect follows the scan. */
+static void log_scan_results(void)
+{
+    uint16_t n = 10;
+    wifi_ap_record_t *aps = calloc(n, sizeof(*aps));
+    if (!aps || esp_wifi_scan_get_ap_records(&n, aps) != ESP_OK) {
+        free(aps);
+        return;
+    }
+    ESP_LOGI(TAG, "scan: %u networks", n);
+    for (int i = 0; i < n; i++) {
+        ESP_LOGI(TAG, "  %-24s ch %2d  %4d dBm  auth %d", (const char *)aps[i].ssid,
+                 aps[i].primary, aps[i].rssi, aps[i].authmode);
+    }
+    free(aps);
+}
+
 static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
+    static bool s_scanned;
     if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) {
+        if (!s_scanned && esp_wifi_scan_start(NULL, false) == ESP_OK) {
+            s_scanned = true;               /* connect from WIFI_EVENT_SCAN_DONE */
+        } else {
+            esp_wifi_connect();
+        }
+    } else if (base == WIFI_EVENT && id == WIFI_EVENT_SCAN_DONE) {
+        log_scan_results();
         esp_wifi_connect();
     } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
+        const wifi_event_sta_disconnected_t *ev = data;
         if (s_wifi_connected) {
-            ESP_LOGW(TAG, "wifi lost");
+            ESP_LOGW(TAG, "wifi lost (reason %d)", ev->reason);
+        } else {
+            ESP_LOGW(TAG, "wifi join failed (reason %d), retrying", ev->reason);
         }
         s_wifi_connected = false;
         s_ip[0] = '\0';

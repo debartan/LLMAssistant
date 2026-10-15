@@ -58,11 +58,13 @@ class LocalWhisperSTT:
 
     name = "local"
 
-    def __init__(self, model_size: str) -> None:
+    def __init__(self, model_size: str, device: str = "cpu") -> None:
         from faster_whisper import WhisperModel  # optional dependency
 
-        log.info("loading faster-whisper model %s", model_size)
-        self.model = WhisperModel(model_size, device="auto", compute_type="int8")
+        # "cpu" with int8 weights runs well on a laptop; "cuda" needs the
+        # CUDA and cuBLAS runtime libraries installed.
+        log.info("loading faster-whisper model %s on %s", model_size, device)
+        self.model = WhisperModel(model_size, device=device, compute_type="int8")
 
     def _transcribe_sync(self, pcm: bytes, sample_rate: int) -> str:
         if sample_rate != 16000:
@@ -80,7 +82,7 @@ def build_stt(settings: Settings) -> STTProvider:
     if kind == "openai":
         return OpenAISTT(settings.openai_stt_model)
     if kind == "local":
-        return LocalWhisperSTT(settings.whisper_model)
+        return LocalWhisperSTT(settings.whisper_model, settings.whisper_device)
     if kind in ("none", ""):
         log.warning("STT_PROVIDER is 'none': voice input will not be transcribed")
         return NullSTT()

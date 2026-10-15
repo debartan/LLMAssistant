@@ -46,21 +46,16 @@ Do not commit `firmware/build/`, `firmware/managed_components/`,
 
 ## Status
 
-- Firmware compiles cleanly against ESP-IDF 5.5 and board support package
-  `waveshare/esp32_s3_touch_amoled_1_8` 2.0.3. Server tests pass (19).
-- Nothing has run on the physical board yet. When debugging the first flash,
-  these are the untested assumptions, in order of risk:
-  1. Touch routing: all app widgets are non-clickable so presses reach the
-     screen-level handler in `apps/app_manager.c`. If taps do nothing, look here.
-  2. Audio: one full-duplex ES8311 codec device in `audio/audio.c` (mode BOTH,
-     type IN_OUT) instead of the board package's two separate devices.
-  3. WebSocket reassembly in `link/link.c` for messages larger than the 4 kB
-     client buffer (`payload_offset` handling).
-  4. Speech pacing: the server stays about 1.5 s ahead of real time
-     (`server/assistant_server/session.py`); the device buffer holds 4 s.
-- Expect to tune microphone gain, speaker volume and brightness in
-  `idf.py menuconfig` under "LLM Assistant", and the 40 px swipe threshold in
-  `apps/app_manager.c`.
+- Runs on the physical board as of 2026-10-16: boot, display, touch, codec
+  init, Wi-Fi (2.4 GHz only), WebSocket link and the hello handshake all
+  verified; the server runs with local speech-to-text and text-to-speech.
+  A Claude chat turn has not been completed yet (authentication decision
+  pending) and audio has not been heard yet. `docs/HANDOFF.md` has the full
+  state, the hardware facts, the open decisions and the requested UI rework
+  (button navigation, rounded-corner safe area, MonoUI look). Read it before
+  touching the firmware.
+- `firmware/sdkconfig` holds the Wi-Fi credentials and server URI and is
+  ignored by git; `server/.env` likewise.
 
 ## Conventions
 
@@ -89,6 +84,12 @@ Do not commit `firmware/build/`, `firmware/managed_components/`,
 
 ## Gotchas already hit
 
+- The touch controller must be reset through IO expander pin EXIO2 before
+  the display starts, or the BSP aborts the boot; `board.c` does this and
+  starts the display with the BSP's public pieces so a silent touch is not
+  fatal. Never call `i2c_master_bus_reset()` (hangs the next transaction).
+  `CONFIG_BSP_ERROR_CHECK=n` does not compile with BSP 2.0.3.
+- The radio is 2.4 GHz only; the boot log lists the networks the device sees.
 - LVGL 9.6: `lv_obj_add_flag` / `lv_obj_remove_flag` are deprecated; use
   `lv_obj_set_hidden`, `lv_obj_set_clickable`, `lv_obj_set_scrollable`.
   The real headers are under `managed_components/lvgl__lvgl/include/`; the

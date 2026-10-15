@@ -62,11 +62,12 @@ class PiperTTS:
 
     name = "piper"
 
-    def __init__(self, model_path: str, target_rate: int) -> None:
+    def __init__(self, model_path: str, target_rate: int, bin_path: str = "piper") -> None:
         if not model_path:
             raise ValueError("PIPER_MODEL must point at a .onnx voice file")
         self.model_path = model_path
         self.target_rate = target_rate
+        self.bin_path = bin_path or "piper"
         self.source_rate = self._read_sample_rate(model_path)
 
     @staticmethod
@@ -81,7 +82,7 @@ class PiperTTS:
 
     async def synthesize(self, text: str) -> bytes:
         proc = await asyncio.create_subprocess_exec(
-            "piper", "--model", self.model_path, "--output-raw",
+            self.bin_path, "--model", self.model_path, "--output-raw",
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
@@ -95,7 +96,7 @@ def build_tts(settings: Settings) -> TTSProvider:
     if kind == "openai":
         return OpenAITTS(settings.openai_tts_model, settings.openai_tts_voice, settings.sample_rate)
     if kind == "piper":
-        return PiperTTS(settings.piper_model, settings.sample_rate)
+        return PiperTTS(settings.piper_model, settings.sample_rate, settings.piper_bin)
     if kind in ("none", ""):
         log.warning("TTS_PROVIDER is 'none': replies will be shown on screen only")
         return NullTTS()
